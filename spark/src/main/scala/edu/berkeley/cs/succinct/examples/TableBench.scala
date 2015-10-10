@@ -44,7 +44,7 @@ object TableBench {
   }
 
   def getRDD(rdd: RDD[(Long, Array[String])], recordId: Long): Array[String] = {
-    val records = rdd.filter(kv => kv._2 == recordId).collect()
+    val records = rdd.filter(kv => kv._1 == recordId).collect()
     if (records.length != 1) {
       throw new ArrayIndexOutOfBoundsException("Invalid recordId " + recordId)
     }
@@ -149,7 +149,7 @@ object TableBench {
   def main(args: Array[String]): Unit = {
 
     if (args.length < 5) {
-      System.err.println("Usage: WikiBench <raw-data> <succinct-data> <partitions> <query-path> <output-path>")
+      System.err.println("Usage: TableBench <raw-data> <succinct-data> <partitions> <query-path> <output-path>")
       System.exit(1)
     }
 
@@ -178,11 +178,6 @@ object TableBench {
 
     val partitionFirstRecordIds = partitionRecordCounts.scanLeft(0L)(_ + _)
 
-    val tableDataDisk = tableData.mapPartitionsWithIndex((i, p) => {
-      addRecordIds(p, partitionFirstRecordIds(i))
-    }).persist(StorageLevel.DISK_ONLY)
-
-
     // Compute partition sizes and partition recordIds
     recordIds = Random.shuffle(partitionFirstRecordIds.zip(partitionRecordCounts)
       .map(range => (0 to 99).map(i => range._1 + (Math.abs(Random.nextLong()) % range._2)))
@@ -194,18 +189,14 @@ object TableBench {
     recordIdsWarmup = sampleSeq(recordIds, WARMUP_COUNT)
     recordIdsMeasure = sampleSeq(recordIds, MEASURE_COUNT)
 
-    // Benchmark DISK_ONLY
-    benchSparkRDD(tableDataDisk)
-    tableDataDisk.unpersist()
-
     val tableDataMem = tableData.mapPartitionsWithIndex((i, p) => {
       addRecordIds(p, partitionFirstRecordIds(i))
-    }).persist(StorageLevel.DISK_ONLY)
+    }).cache()
 
     // Ensure all partitions are in memory
     println("Number of lines = " + tableDataMem.count())
 
-    // Benchmark MEMORY_ONLY
+    // Benchmark
     benchSparkRDD(tableDataMem)
     tableDataMem.unpersist()
 
