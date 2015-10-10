@@ -163,7 +163,7 @@ object TableBench {
     val ctx = new SparkContext(sparkConf)
 
     searchQueries = Source.fromFile(queryPath)
-      .getLines().map(line => (line.split('\t')(0).toInt, line.split('\t')(0)))
+      .getLines().map(line => (line.split('\t')(0).toInt, line.split('\t')(1)))
       .toSeq
 
     // Create RDD
