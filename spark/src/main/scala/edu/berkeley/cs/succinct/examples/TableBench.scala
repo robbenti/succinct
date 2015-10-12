@@ -159,7 +159,7 @@ object TableBench {
     val queryPath = args(3)
     outPath = args(4)
 
-    val sparkConf = new SparkConf().setAppName("WikiBench")
+    val sparkConf = new SparkConf().setAppName("TableBench")
     val ctx = new SparkContext(sparkConf)
 
     searchQueries = Source.fromFile(queryPath)
