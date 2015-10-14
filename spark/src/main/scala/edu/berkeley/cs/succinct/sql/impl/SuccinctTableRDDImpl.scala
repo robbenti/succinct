@@ -150,6 +150,7 @@ class SuccinctTableRDDImpl private[succinct](
 
   /** Implements pruneAndFilter for [[SuccinctTableRDD]]. */
   override def pruneAndFilter(requiredColumns: Array[String], filters: Array[Filter]): RDD[Row] = {
+    System.out.println("Prune and filter called")
     val reqColsCheck = schema.map(f => f.name -> requiredColumns.contains(f.name)).toMap
     val queryList = filtersToQueries(filters)
     val queryTypes = queryList.map(_._1)

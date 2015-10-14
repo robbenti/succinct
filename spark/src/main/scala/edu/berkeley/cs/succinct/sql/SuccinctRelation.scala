@@ -11,10 +11,12 @@ case class SuccinctRelation(
                              userSchema: StructType = null)(@transient val sqlContext: SQLContext)
   extends BaseRelation with PrunedFilteredScan {
 
-  val succinctTableRDD = SuccinctTableRDD(sqlContext.sparkContext, location, StorageLevel.MEMORY_AND_DISK).persist()
+  val succinctTableRDD = SuccinctTableRDD(sqlContext.sparkContext, location, StorageLevel.MEMORY_ONLY).persist()
   private[succinct] var succinctSchema = getSchema
 
   override def buildScan(requiredColumns: Array[String], filters: Array[Filter]): RDD[Row] = {
+    System.out.println("Building scan with cols:" + requiredColumns.mkString(",") + " and filters:"
+      + filters.mkString(","))
     succinctTableRDD.pruneAndFilter(requiredColumns, filters)
   }
 
